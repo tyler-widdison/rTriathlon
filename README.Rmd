@@ -1,0 +1,59 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# rTriathlon
+
+<!-- badges: start -->
+
+<!-- badges: end -->
+
+rTriathlon is a client for <https://www.triathlon.org/>.
+
+## Installation
+
+You can install the development version of rTriathlon from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("tyler-widdison/rTriathlon")
+```
+
+## Example
+
+Get a list of triathlon events:
+
+```{r}
+library(rTriathlon)
+event_list <- tri_get_event_list('2022-01-01', '2023-01-01')
+nrow(event_list)
+```
+
+Get details for a specific event:
+
+```{r}
+event_id <- event_list$event_id[1:5]
+prog_list <- tri_program_list_get(event_id)
+prog_list %>% dplyr::select(prog_id, event_id, prog_name) %>% head
+```
+
+We can then get results from events:
+
+```{r}
+tri_results_list_get(174221, 583767)
+```
+
+### Version control
+
+Currently in a developmental state
