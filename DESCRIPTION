@@ -13,3 +13,5 @@ Imports:
 Depends:
   magrittr
 RoxygenNote: 7.2.3
+URL: https://github.com/tyler-widdison/rTriathlon
+BugReports: https://github.com/tyler-widdison/rTriathlon/issues
