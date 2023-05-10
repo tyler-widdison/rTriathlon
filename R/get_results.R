@@ -21,35 +21,25 @@ tri_results_list_get <- function(event_no, prog_no){
     res <- df$data$results
     res$event_id <- event_no
     res$prog_id <- prog_no
-    if(!("athlete_id" %in% colnames(res))){ res$athlete_id <- "" }
-    if(!("athlete_title" %in% colnames(res))){ res$athlete_title <- "" }
-    if(!("athlete_gender" %in% colnames(res))){ res$athlete_gender <- "" }
-    if(!("athlete_yob" %in% colnames(res))){ res$athlete_yob <- "" }
-    if(!("athlete_noc" %in% colnames(res))){ res$athlete_noc <- "" }
-    if(!("position" %in% colnames(res))){ res$position <- "" }
-    if(!("total_time" %in% colnames(res))){ res$total_time <- "" }
-    # res$swim <- lapply(res$splits, `[[`, 1)
-    # res$T1 <- lapply(res$splits, `[[`, 2)
-    # res$bike <- lapply(res$splits, `[[`, 3)
-    # res$T2 <- lapply(res$splits, `[[`, 4)
-    # res$run <- lapply(res$splits, `[[`, 5)
+    if (!("athlete_id" %in% colnames(res))) {res$athlete_id <- ""}
+    if (!("athlete_title" %in% colnames(res))) {res$athlete_title <- ""}
+    if (!("athlete_gender" %in% colnames(res))) {res$athlete_gender <- ""}
+    if (!("athlete_yob" %in% colnames(res))) {res$athlete_yob <- ""}
+    if (!("athlete_noc" %in% colnames(res))) {res$athlete_noc <- ""}
+    if (!("position" %in% colnames(res))) {res$position <- ""}
+    if (!("total_time" %in% colnames(res))) {res$total_time <- ""}
+    res$swim <- lapply(res$splits, `[[`, 1)
+    res$T1 <- lapply(res$splits, `[[`, 2)
+    res$bike <- lapply(res$splits, `[[`, 3)
+    res$T2 <- lapply(res$splits, `[[`, 4)
+    res$run <- lapply(res$splits, `[[`, 5)
 
     temp_res <- res[,c("event_id","prog_id","athlete_id","athlete_title","athlete_gender","athlete_yob","athlete_noc","position","total_time")]
 
-    for(i in 1:length(res$splits[[1]])) {
+    for (i in 1:length(res$splits[[1]])) {
       temp_res$split_i <- unlist(lapply(res$splits, `[[`, i))
-      colnames(temp_res)[length(colnames(temp_res))] <- paste0("split_",i)
+      colnames(temp_res)[length(colnames(temp_res))] <-
+        paste0("split_", i)
+      }
+    return(temp_res)
     }
-
-    if( bfirst == TRUE ){
-      dfout <- temp_res
-      bfirst <- FALSE
-    } else {
-      dfout <- plyr::rbind.fill(dfout,temp_res)
-    }
-
-  }
-
-  return(dfout)
-
-}
