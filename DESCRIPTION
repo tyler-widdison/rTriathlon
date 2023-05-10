@@ -9,6 +9,7 @@ Encoding: UTF-8
 Imports:
   dplyr,
   httr,
-  jsonlite,
+  jsonlite
+Depends:
   magrittr
 RoxygenNote: 7.2.3
