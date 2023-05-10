@@ -10,3 +10,4 @@ Imports:
   dplyr,
   httr
 RoxygenNote: 7.2.3
+Maintainer: Tyler Widdison <tyler.widdison@gmail.com>
