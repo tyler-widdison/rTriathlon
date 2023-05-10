@@ -16,7 +16,7 @@
 tri_results_list_get <- function(event_no, prog_no){
 
     url = paste0("https://api.triathlon.org/v1/events/",event_no,"/programs/",prog_no,"/results")
-    res <- GET(url,add_headers(c("apikey" = "2649776ef9ece4c391003b521cbfce7a")))
+    res <- httr::GET(url,httr::add_headers(c("apikey" = "2649776ef9ece4c391003b521cbfce7a")))
     df <- jsonlite::fromJSON(rawToChar(res$content))
     res <- df$data$results
     res$event_id <- event_no

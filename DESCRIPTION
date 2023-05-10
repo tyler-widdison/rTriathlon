@@ -1,13 +1,14 @@
 Package: rTriathlon
 Title: Client for the Triathlon api service https://developers.triathlon.org/
 Version: 0.1.0
-Author: person("Tyler", 'Widdison', role = c('aut', 'cre'))
+Authors@R: person("Tyler", 'Widdison', email = 'tylerperrywiddison@gmail.com', 
+  role = c('aut', 'cre'))
 Description: Client for the Triathlon api service
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Imports:
   dplyr,
-  httr
+  httr,
+  jsonlite,
+  magrittr
 RoxygenNote: 7.2.3
-Maintainer: Tyler Widdison <tyler.widdison@gmail.com>

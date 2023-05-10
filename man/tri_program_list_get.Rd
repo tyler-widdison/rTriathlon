@@ -7,7 +7,7 @@
 tri_program_list_get(no)
 }
 \arguments{
-\item{no}{numeric: event number}
+\item{no}{:event number}
 }
 \value{
 A data.frame
