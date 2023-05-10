@@ -1,6 +1,6 @@
-#' Get triathlon data
+#' The Event Listings method returns a paginated, filterable list of basic event objects matching the search criteria.
 #'
-#' @references \url{https://developers.triathlon.org/reference}
+#' @references \url{https://developers.triathlon.org/reference/event-listings}
 #' @param startdate date: start date to search for events
 #' @param enddate date: end date to search for events
 #'
@@ -12,7 +12,6 @@
 #' }
 #'
 #' @export
-
 
 tri_get_event_list <- function(startdate, enddate){
   # function to get events based on filter parameters #
@@ -42,4 +41,3 @@ tri_get_event_list <- function(startdate, enddate){
   }
   return(dfout)
 }
-
