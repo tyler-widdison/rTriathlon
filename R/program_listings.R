@@ -19,7 +19,7 @@ tri_program_list_get <- function(no) {
       res <- httr::GET(url, httr::add_headers(c("apikey" = "2649776ef9ece4c391003b521cbfce7a")))
       df <- jsonlite::fromJSON(rawToChar(res$content))
       prog <- df$data
-      prog <- prog %>% dplyr::filter(results == TRUE)
+      #prog <- prog %>% dplyr::filter(results == TRUE)
       return(prog)
     }))
   }, error = function(e) {
