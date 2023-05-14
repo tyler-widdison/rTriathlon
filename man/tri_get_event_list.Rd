@@ -7,9 +7,9 @@
 tri_get_event_list(startdate, enddate)
 }
 \arguments{
-\item{startdate}{date: start date to search for events}
+\item{startdate}{:start date to search for events}
 
-\item{enddate}{date: end date to search for events}
+\item{enddate}{:end date to search for events}
 }
 \value{
 A data.frame

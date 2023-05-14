@@ -1,6 +1,6 @@
 Package: rTriathlon
 Title: Client for the Triathlon api service https://developers.triathlon.org/
-Version: 0.1.0
+Version: 0.5.1
 Authors@R: person("Tyler", 'Widdison', email = 'tylerperrywiddison@gmail.com', 
   role = c('aut', 'cre'))
 Description: Client for the Triathlon api service
@@ -9,7 +9,10 @@ Encoding: UTF-8
 Imports:
   dplyr,
   httr,
-  jsonlite
+  jsonlite,
+  plyr,
+  tidyr,
+  ggplot2
 Depends:
   magrittr
 RoxygenNote: 7.2.3

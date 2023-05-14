@@ -21,6 +21,18 @@ knitr::opts_chunk$set(
 
 rTriathlon is a client for <https://www.triathlon.org/>.
 
+Resources regarding Triathlon qualifications:
+
+-   <https://www.teamusa.org/-/media/USA_Triathlon/PDF/Elite-International/2023/TRI_2024_OLY_ATH_FINAL-With-Signature-NEW.pdf?la=en&hash=327A5F72C8CA11AB41CFEEC84B8D6E1A5CE544C3>
+
+-   <https://en.wikipedia.org/wiki/Triathlon_at_the_2024_Summer_Olympics_%E2%80%93_Qualification>
+
+-   <https://olympics.com/en/news/pathway-to-paris-triathlon-qualification-system-explained>
+
+-   <https://www.triathlon.org/news/article/ioc_approves_the_olympic_qualification_criteria_for_paris_2024_olympics>
+
+-   <https://www.triathlon.org/uploads/docs/Paris2024_Olympic_Qualification_Principles.pdf?fbclid=IwAR2daD8STkBG8uBQfAYEXAGFArwEGFUT5xABpDaCYxvp_EPpRpVZ2P-FFV0>
+
 ## Installation
 
 You can install the development version of rTriathlon from [GitHub](https://github.com/) with:
@@ -32,11 +44,11 @@ devtools::install_github("tyler-widdison/rTriathlon")
 
 ## Example
 
-Get a list of triathlon events:
+Get a list of triathlon events (this date range happens to be the Olympic qualification range):
 
 ```{r}
 library(rTriathlon)
-event_list <- tri_get_event_list('2022-01-01', '2023-01-01')
+event_list <- tri_get_event_list('2022-05-27', '2024-05-27')
 nrow(event_list)
 ```
 
@@ -52,6 +64,78 @@ We can then get results from events:
 
 ```{r}
 tri_results_list_get(174221, 583767)
+```
+
+If we only want to consider USA athletes Olympic qualifying events per <https://triathlon.org/rankings>
+
+```{r}
+# Get events in qualifying current date range
+oly_events <- event_list %>%
+    dplyr::mutate(event_date = as.Date(event_date)) %>% 
+    tidyr::unnest(event_categories, keep_empty = T) %>% 
+    dplyr::filter(cat_id %in% c(351, 348, 345, 349, 341, 340) & event_id != '159913') %>% # filtering out 2022 GBR has used this to qualify already
+    dplyr::mutate(keep = ifelse(grepl('Continental', cat_name) & !grepl('America', event_title), 'toss', 'keep')) %>% 
+    dplyr::filter(keep == 'keep') %>%
+    dplyr::mutate(Year = lubridate::year(event_date),
+           Month = lubridate::month(event_date, label = F, abbr = F),
+           Day = lubridate::wday(event_date, label = T),
+           mday = lubridate::mday(event_date),
+           Month_week = (5 + lubridate::day(event_date) + lubridate::wday(lubridate::floor_date(event_date, 'month'))) %/% 7)
+
+oly_events %>% head
+```
+
+We can then look at the results for the qualifying `oly_events` events.
+
+```{r}
+prog_list <- tri_program_list_get(oly_events$event_id)
+prog_list <- prog_list %>% dplyr::filter(is_race == T & results == T)
+
+# Function to apply tri_results to multiple events/catagories
+get_results <- function(event_nos, prog_nos) {
+  results_list <- lapply(seq_along(event_nos), function(i) {
+    tryCatch(
+      tri_results_list_get(event_no = event_nos[i], prog_no = prog_nos[i]),
+      error = function(e) {
+        message(paste0("Error retrieving results for event ", event_nos[i], " and program ", prog_nos[i], ": ", e$message))
+        return(NULL)
+      }
+    )
+  })
+  results_df <- do.call(plyr::rbind.fill, results_list)
+  return(results_df)
+}
+
+data <- get_results(prog_list$event_id, prog_list$prog_id)
+
+# Join the results back to the oly_events data for event data
+df <- data %>% 
+  dplyr::left_join(oly_events %>% 
+              dplyr::select(event_id, cat_id, event_title, event_date, cat_name), 
+            by = c('event_id'))
+
+df %>% head
+```
+
+We can check out each NOC is fairing thus far:
+
+```{r, echo=FALSE}
+df %>% 
+    dplyr::filter(!position %in% c('DNF', 'DNS', 'DSQ', 'LAP', 'NC') & 
+           !is.na(position) & athlete_gender != '') %>% 
+    dplyr::mutate(position = as.numeric(position)) %>% 
+    dplyr::group_by(event_id, event_title, athlete_gender, cat_name, athlete_noc, position) %>% 
+    dplyr::count() %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(n > 2) %>% 
+    ggplot2::ggplot(ggplot2::aes(stats::reorder(athlete_noc, position), position, fill = cat_name)) + 
+    ggplot2::geom_boxplot() + 
+    ggplot2::theme_bw() + 
+    ggplot2::labs(y = 'Average Athlete NOC Finish',
+         title = 'Combined M/W average finishes during Olympic \nqualification period with more than 4 total competitions',
+         x = '',
+         subtitle = 'Data filters out events less then 2') + 
+  ggplot2::coord_flip()
 ```
 
 ### Version control

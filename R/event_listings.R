@@ -1,8 +1,8 @@
 #' The Event Listings method returns a paginated, filterable list of basic event objects matching the search criteria.
 #'
 #' @references \url{https://developers.triathlon.org/reference/event-listings}
-#' @param startdate date: start date to search for events
-#' @param enddate date: end date to search for events
+#' @param startdate :start date to search for events
+#' @param enddate :end date to search for events
 #'
 #' @return A data.frame
 #'

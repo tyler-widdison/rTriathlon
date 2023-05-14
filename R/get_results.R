@@ -1,8 +1,8 @@
 #' The Results method searches a specified collection and returns a corresponding basic object for each.
 #' We don’t recommend to merge the results of several queries in a single results list because their ranking criteria are often non-comparable: rather display them in separated sections.
 #' @references \url{https://developers.triathlon.org/reference/search-results}
-#' @param event_no numeric: event number
-#' @param prog_no numeric: program number
+#' @param event_no :event number
+#' @param prog_no :program number
 #'
 #' @return A data.frame
 #'
@@ -28,18 +28,18 @@ tri_results_list_get <- function(event_no, prog_no){
     if (!("athlete_noc" %in% colnames(res))) {res$athlete_noc <- ""}
     if (!("position" %in% colnames(res))) {res$position <- ""}
     if (!("total_time" %in% colnames(res))) {res$total_time <- ""}
-    res$swim <- lapply(res$splits, `[[`, 1)
-    res$T1 <- lapply(res$splits, `[[`, 2)
-    res$bike <- lapply(res$splits, `[[`, 3)
-    res$T2 <- lapply(res$splits, `[[`, 4)
-    res$run <- lapply(res$splits, `[[`, 5)
+    #res$swim <- lapply(res$splits, `[[`, 1)
+    #res$T1 <- lapply(res$splits, `[[`, 2)
+    #res$bike <- lapply(res$splits, `[[`, 3)
+    #res$T2 <- lapply(res$splits, `[[`, 4)
+    #res$run <- lapply(res$splits, `[[`, 5)
 
-    temp_res <- res[,c("event_id","prog_id","athlete_id","athlete_title","athlete_gender","athlete_yob","athlete_noc","position","total_time")]
+    #temp_res <- res[,c("event_id","prog_id","athlete_id","athlete_title","athlete_gender","athlete_yob","athlete_noc","position","total_time")]
 
-    for (i in 1:length(res$splits[[1]])) {
-      temp_res$split_i <- unlist(lapply(res$splits, `[[`, i))
-      colnames(temp_res)[length(colnames(temp_res))] <-
-        paste0("split_", i)
-      }
-    return(temp_res)
+    #for (i in 1:length(res$splits[[1]])) {
+    #  temp_res$split_i <- unlist(lapply(res$splits, `[[`, i))
+    #  colnames(temp_res)[length(colnames(temp_res))] <-
+    #    paste0("split_", i)
+    #  }
+    return(res)
     }

@@ -8,6 +8,18 @@
 
 rTriathlon is a client for <https://www.triathlon.org/>.
 
+Resources regarding Triathlon qualifications:
+
+- <https://www.teamusa.org/-/media/USA_Triathlon/PDF/Elite-International/2023/TRI_2024_OLY_ATH_FINAL-With-Signature-NEW.pdf?la=en&hash=327A5F72C8CA11AB41CFEEC84B8D6E1A5CE544C3>
+
+- <https://en.wikipedia.org/wiki/Triathlon_at_the_2024_Summer_Olympics_%E2%80%93_Qualification>
+
+- <https://olympics.com/en/news/pathway-to-paris-triathlon-qualification-system-explained>
+
+- <https://www.triathlon.org/news/article/ioc_approves_the_olympic_qualification_criteria_for_paris_2024_olympics>
+
+- <https://www.triathlon.org/uploads/docs/Paris2024_Olympic_Qualification_Principles.pdf?fbclid=IwAR2daD8STkBG8uBQfAYEXAGFArwEGFUT5xABpDaCYxvp_EPpRpVZ2P-FFV0>
+
 ## Installation
 
 You can install the development version of rTriathlon from
@@ -20,14 +32,15 @@ devtools::install_github("tyler-widdison/rTriathlon")
 
 ## Example
 
-Get a list of triathlon events:
+Get a list of triathlon events (this date range happens to be the
+Olympic qualification range):
 
 ``` r
 library(rTriathlon)
 #> Loading required package: magrittr
-event_list <- tri_get_event_list('2022-01-01', '2023-01-01')
+event_list <- tri_get_event_list('2022-05-27', '2024-05-27')
 nrow(event_list)
-#> [1] 358
+#> [1] 460
 ```
 
 Get details for a specific event:
@@ -36,13 +49,13 @@ Get details for a specific event:
 event_id <- event_list$event_id[1:5]
 prog_list <- tri_program_list_get(event_id)
 prog_list %>% dplyr::select(prog_id, event_id, prog_name) %>% head
-#>   prog_id event_id   prog_name
-#> 1  583767   174221   Elite Men
-#> 2  583768   174221 Elite Women
-#> 3  581593   173705   Elite Men
-#> 4  581594   173705 Elite Women
-#> 5  559799   168057   Elite Men
-#> 6  559800   168057 Elite Women
+#>   prog_id event_id     prog_name
+#> 1  560870   168315 Elite Coaches
+#> 2  560868   168315     Elite Men
+#> 3  560869   168315   Elite Women
+#> 4  547740   165006 Elite Coaches
+#> 5  547741   165006     Elite Men
+#> 6  547742   165006   Elite Women
 ```
 
 We can then get results from events:
@@ -98,6 +111,111 @@ tri_results_list_get(174221, 583767)
 #> 14 00:00:43 00:45:36
 #> 15 00:01:16 00:47:27
 ```
+
+If we only want to consider USA athletes Olympic qualifying events per
+<https://triathlon.org/rankings>
+
+``` r
+# Get events in qualifying current date range
+oly_events <- event_list %>%
+    dplyr::mutate(event_date = as.Date(event_date)) %>% 
+    tidyr::unnest(event_categories, keep_empty = T) %>% 
+    dplyr::filter(cat_id %in% c(351, 348, 345, 349, 341, 340) & event_id != '159913') %>% # filtering out 2022 GBR has used this to qualify already
+    dplyr::mutate(keep = ifelse(grepl('Continental', cat_name) & !grepl('America', event_title), 'toss', 'keep')) %>% 
+    dplyr::filter(keep == 'keep') %>%
+    dplyr::mutate(Year = lubridate::year(event_date),
+           Month = lubridate::month(event_date, label = F, abbr = F),
+           Day = lubridate::wday(event_date, label = T),
+           mday = lubridate::mday(event_date),
+           Month_week = (5 + lubridate::day(event_date) + lubridate::wday(lubridate::floor_date(event_date, 'month'))) %/% 7)
+
+oly_events %>% head
+#> # A tibble: 6 × 47
+#>   event_id event_title      event_slug event_edit_date event_venue event_country
+#>      <int> <chr>            <chr>      <chr>           <chr>       <chr>        
+#> 1   163471 2022 World Tria… 2022_worl… 2022-08-08T08:… Cannigione… Italy        
+#> 2   164485 2022 World Tria… 2022_worl… 2022-06-03T04:… Targu Mures Romania      
+#> 3   163472 2022 World Tria… 2022_worl… 2022-06-13T10:… Leeds       Great Britain
+#> 4   163474 2022 World Tria… 2022_worl… 2022-11-22T08:… Huatulco    Mexico       
+#> 5   163476 2022 World Tria… 2022_worl… 2022-07-12T07:… Hamburg     Germany      
+#> 6   164176 2022 Americas T… 2022_amer… 2022-07-16T11:… Alamitos B… United States
+#> # ℹ 41 more variables: event_latitude <dbl>, event_longitude <dbl>,
+#> #   event_date <date>, event_finish_date <chr>, event_country_isoa2 <chr>,
+#> #   event_country_noc <chr>, event_region_id <int>, event_country_id <int>,
+#> #   event_region_name <chr>, event_website <chr>, event_status <chr>,
+#> #   cat_name <chr>, cat_id <int>, cat_parent_id <lgl>,
+#> #   event_specifications <list>, event_flag <chr>, event_listing <chr>,
+#> #   event_api_listing <chr>, timestamp <int>, sport <list>, …
+```
+
+We can then look at the results for the qualifying `oly_events` events.
+
+``` r
+prog_list <- tri_program_list_get(oly_events$event_id)
+prog_list <- prog_list %>% dplyr::filter(is_race == T & results == T)
+
+# Function to apply tri_results to multiple events/catagories
+get_results <- function(event_nos, prog_nos) {
+  results_list <- lapply(seq_along(event_nos), function(i) {
+    tryCatch(
+      tri_results_list_get(event_no = event_nos[i], prog_no = prog_nos[i]),
+      error = function(e) {
+        message(paste0("Error retrieving results for event ", event_nos[i], " and program ", prog_nos[i], ": ", e$message))
+        return(NULL)
+      }
+    )
+  })
+  results_df <- do.call(plyr::rbind.fill, results_list)
+  return(results_df)
+}
+
+data <- get_results(prog_list$event_id, prog_list$prog_id)
+
+# Join the results back to the oly_events data for event data
+df <- data %>% 
+  dplyr::left_join(oly_events %>% 
+              dplyr::select(event_id, cat_id, event_title, event_date, cat_name), 
+            by = c('event_id'))
+#> Warning in dplyr::left_join(., oly_events %>% dplyr::select(event_id, cat_id, : Detected an unexpected many-to-many relationship between `x` and `y`.
+#> ℹ Row 3601 of `x` matches multiple rows in `y`.
+#> ℹ Row 1 of `y` matches multiple rows in `x`.
+#> ℹ If a many-to-many relationship is expected, set `relationship =
+#>   "many-to-many"` to silence this warning.
+
+df %>% head
+#>   event_id prog_id athlete_id           athlete_title athlete_gender
+#> 1   163471  544380      11378       Jonathan Brownlee           male
+#> 2   163471  544380      69143          Manoel Messias           male
+#> 3   163471  544380      63651             Tom Richard           male
+#> 4   163471  544380      56153              Márk Dévay           male
+#> 5   163471  544380      70032              Max Studer           male
+#> 6   163471  544380      74419 Alberto Gonzalez Garcia           male
+#>   athlete_yob athlete_noc position total_time  split_1  split_2  split_3
+#> 1        1990         GBR        1   00:54:08 00:08:52 00:00:38 00:28:58
+#> 2        1996         BRA        2   00:54:24 00:00:00 00:00:00 00:00:00
+#> 3        1993         FRA        3   00:54:35 00:08:56 00:00:39 00:28:52
+#> 4        1996         HUN        4   00:54:41 00:08:44 00:00:40 00:29:03
+#> 5        1996         SUI        5   00:55:00 00:00:00 00:00:00 00:00:00
+#> 6        1998         ESP        6   00:55:13 00:09:01 00:00:40 00:29:36
+#>    split_4  split_5 split_6 split_7 split_8 split_9 split_10 split_11 cat_id
+#> 1 00:00:22 00:15:16    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#> 2 00:00:00 00:00:00    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#> 3 00:00:21 00:15:44    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#> 4 00:00:22 00:15:50    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#> 5 00:00:00 00:00:00    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#> 6 00:00:20 00:15:33    <NA>    <NA>    <NA>    <NA>     <NA>     <NA>    349
+#>                          event_title event_date  cat_name
+#> 1 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+#> 2 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+#> 3 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+#> 4 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+#> 5 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+#> 6 2022 World Triathlon Cup Arzachena 2022-05-28 World Cup
+```
+
+We can check out each NOC is fairing thus far:
+
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
 
 ### Version control
 

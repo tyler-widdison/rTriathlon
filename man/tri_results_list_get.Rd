@@ -8,9 +8,9 @@ We don’t recommend to merge the results of several queries in a single results
 tri_results_list_get(event_no, prog_no)
 }
 \arguments{
-\item{event_no}{numeric: event number}
+\item{event_no}{:event number}
 
-\item{prog_no}{numeric: program number}
+\item{prog_no}{:program number}
 }
 \value{
 A data.frame
