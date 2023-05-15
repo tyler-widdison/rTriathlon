@@ -117,7 +117,7 @@ df <- data %>%
 df %>% head
 ```
 
-We can check out each NOC is fairing thus far:
+We can check out how each NOC is fairing thus far:
 
 ```{r, echo=FALSE}
 df %>% 
